@@ -37,9 +37,9 @@ jobs:
           name: Deploy
           command: |
 	    zip -r deployment-${CIRCLE_SHA1}.zip .
-            aws s3 cp deployment-${CIRCLE_SHA1}.zip s3://avengers-docker-eb --region ap-south-1
+            aws s3 cp deployment-${CIRCLE_SHA1}.zip s3://avengers-docker-eb-test2019 --region ap-south-1
             aws elasticbeanstalk create-application-version --application-name avengers \
-                --version-label ${CIRCLE_SHA1} --source-bundle S3Bucket="avengers-docker-eb",S3Key="deployment-${CIRCLE_SHA1}.zip" --region ap-south-1
+                --version-label ${CIRCLE_SHA1} --source-bundle S3Bucket="avengers-docker-eb-test2019",S3Key="deployment-${CIRCLE_SHA1}.zip" --region ap-south-1
             aws elasticbeanstalk update-environment --application-name avengers \
                 --environment-name staging --version-label ${CIRCLE_SHA1} --region ap-south-1
            
