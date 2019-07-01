@@ -36,10 +36,10 @@ jobs:
       - run:
           name: Deploy
           command: |
-            zip -r deployment-${CIRCLE_SHA1}.zip .
-           aws s3 cp deployment-${CIRCLE_SHA1}.zip https://s3.console.aws.amazon.com/s3/buckets/elasticbeanstalk-ap-south-1-282656378169/websiteapp/godocker --region ap-south-1
-            #https://s3.console.aws.amazon.com/s3/buckets/elasticbeanstalk-ap-south-1-282656378169/websiteapp/godocker/?region=us-east-1    
-		aws elasticbeanstalk create-application-version --application-name avengers \
-                --version-label ${CIRCLE_SHA1} --source-bundle S3Bucket="elasticbeanstalk-ap-south-1-282656378169/websiteapp/godocker",S3Key="deployment-${CIRCLE_SHA1}.zip" --region ap-south-1
+	    zip -r deployment-${CIRCLE_SHA1}.zip .
+            aws s3 cp deployment-${CIRCLE_SHA1}.zip s3://avengers-docker-eb --region ap-south-1
+            aws elasticbeanstalk create-application-version --application-name avengers \
+                --version-label ${CIRCLE_SHA1} --source-bundle S3Bucket="avengers-docker-eb",S3Key="deployment-${CIRCLE_SHA1}.zip" --region ap-south-1
             aws elasticbeanstalk update-environment --application-name avengers \
                 --environment-name staging --version-label ${CIRCLE_SHA1} --region ap-south-1
+           
