@@ -1,0 +1,45 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.10
+    
+    working_directory: /go/src/github.com/rajgaekwad/godocker
+
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+         name: Install AWS CLI
+         command: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      - run:
+          name: Test
+          command: go test
+      
+      - run:
+          name: Build
+          command: docker build -t rajgaekwad/avengers:latest .
+      
+      - run:
+          name: Push
+          command: |
+            docker login -u$DOCKERHUB_LOGIN -p$DOCKERHUB_PASSWORD
+            docker tag rajgaekwad/avengers:latest rajgaekwad/avengers:${CIRCLE_SHA1}
+            docker push rajgaekwad/avengers:latest
+            docker push rajgaekwad/avengers:${CIRCLE_SHA1}
+      
+      - run:
+          name: Deploy
+          command: |
+            zip -r deployment-${CIRCLE_SHA1}.zip .
+           aws s3 cp deployment-${CIRCLE_SHA1}.zip https://s3.console.aws.amazon.com/s3/buckets/elasticbeanstalk-ap-south-1-282656378169/websiteapp/godocker --region ap-south-1
+            #https://s3.console.aws.amazon.com/s3/buckets/elasticbeanstalk-ap-south-1-282656378169/websiteapp/godocker/?region=us-east-1    
+		aws elasticbeanstalk create-application-version --application-name avengers \
+                --version-label ${CIRCLE_SHA1} --source-bundle S3Bucket="elasticbeanstalk-ap-south-1-282656378169/websiteapp/godocker",S3Key="deployment-${CIRCLE_SHA1}.zip" --region ap-south-1
+            aws elasticbeanstalk update-environment --application-name avengers \
+                --environment-name staging --version-label ${CIRCLE_SHA1} --region ap-south-1
